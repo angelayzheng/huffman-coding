@@ -52,10 +52,19 @@ def decode_io(input_file: str, output_file: str, tree_file: str) -> None:
 
     with open(input_file, "rb") as file:
         binary_data = file.read()
-        content = "".join(f"{byte:08b}" for byte in binary_data)
+        content = [None] * len(binary_data) * 8
+        for i, byte in enumerate(binary_data):
+            content[i * 8 + 0] = byte >> 7 & 1
+            content[i * 8 + 1] = byte >> 6 & 1
+            content[i * 8 + 2] = byte >> 5 & 1
+            content[i * 8 + 3] = byte >> 4 & 1
+            content[i * 8 + 4] = byte >> 3 & 1
+            content[i * 8 + 5] = byte >> 2 & 1
+            content[i * 8 + 6] = byte >> 1 & 1
+            content[i * 8 + 7] = byte >> 0 & 1
 
     # Remove padding from the start
-    len_padding = int(content[:8], 2)  # Get length of padding
+    len_padding = int("".join(map(str, content[:8])), 2)  # Get length of padding
     print(f"Detected length of padding: {len_padding}")
     content = content[8 + len_padding:]  # Remove padding byte and the padding
     print(f"Finished reading binary data from '{input_file}'. Number of binary characters: {len(content)}")

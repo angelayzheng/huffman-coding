@@ -24,6 +24,7 @@ class HuffmanBinaryTree:
     freq: int
     left: HuffmanBinaryTree | None
     right: HuffmanBinaryTree | None
+    freqlist: list[HuffmanBinaryTree]
     _string: str
 
     def __init__(self, char: str, freq: int,
@@ -71,6 +72,13 @@ class HuffmanBinaryTree:
         """
         encoding_dict = {}
         self._generate_encoding_dict_helper(encoding_dict, "")
+
+        # freqdict = {h.char: h.freq for h in self.freqlist}
+
+        # print(len(encoding_dict))
+        # for c in sorted(list(encoding_dict.keys()), key=lambda s: len(encoding_dict[s]) * freqdict[s]):
+        #     print(f"{ord(c)}\t{len(encoding_dict[c]) * freqdict[c]}")
+
         return encoding_dict
 
     def _generate_encoding_dict_helper(self, encoding_dict: dict[str, str], str_so_far: str) -> None:
@@ -117,6 +125,7 @@ def generate_encoding_tree(s: str) -> HuffmanBinaryTree:
     :return: encoding/decoding tree
     """
     freq_list = generate_frequency_nodes(s)
+    freqlist = freq_list.copy()
 
     while len(freq_list) > 1:
         node2 = freq_list.pop()
@@ -130,6 +139,7 @@ def generate_encoding_tree(s: str) -> HuffmanBinaryTree:
         # insert_keeping_sort(freq_list, new_node, lambda node: node.freq)
 
     # Only one node left, which is the entire tree
+    # freq_list[0].freqlist = freqlist
     return freq_list[0]
 
 
@@ -174,7 +184,7 @@ def encode(s: str, tree: HuffmanBinaryTree) -> str:
 
 
 # ---------- DECODING ----------
-def huffman_decode(s: str, tree: HuffmanBinaryTree) -> str:
+def huffman_decode(s: list[int], tree: HuffmanBinaryTree) -> str:
     """
     Decode the given string using Huffman compression with the given tree.
 
@@ -185,31 +195,18 @@ def huffman_decode(s: str, tree: HuffmanBinaryTree) -> str:
     :param tree: tree to use for decoding
     :return: decoded string
     """
-    decoded = []
+    decoded = [None] * tree.freq
+    i = 0
 
-    while len(s) > 0:
-        new_char, s = decode_next_char(s, tree)
-        decoded.append(new_char)
-
-        print(f"    Binary characters remaining: {len(s)}")
+    curr_node = tree
+    for bit in s:
+        if bit: # 1
+            curr_node = curr_node.right
+        else:  # 0
+            curr_node = curr_node.left
+        if curr_node.left is None:
+            decoded[i] = curr_node.char
+            i += 1
+            curr_node = tree
 
     return "".join(decoded).replace("\\n", "\n")
-
-
-def decode_next_char(s: str, curr_node: HuffmanBinaryTree) -> tuple[str, str]:
-    """
-    Decode the next character (located at the beginning) of the encoded string.
-
-    :param s: string to be decoded
-    :param curr_node: current node in a tree to use for decoding
-    :return: tuple of the decoded character, and the remaining string to be decoded
-    """
-    # Base case: at a leaf node
-    if curr_node.left is None and curr_node.right is None:
-        return curr_node.char, s
-
-    # Recursive: continue down the tree
-    elif s[0] == "0":
-        return decode_next_char(s[1:], curr_node.left)
-    else:  # s[0] == "1"
-        return decode_next_char(s[1:], curr_node.right)
