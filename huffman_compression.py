@@ -191,7 +191,7 @@ def huffman_decode(s: str, tree: HuffmanBinaryTree) -> str:
         new_char, s = decode_next_char(s, tree)
         decoded.append(new_char)
 
-        print(f"Characters remaining: {len(s)}")
+        print(f"    Binary characters remaining: {len(s)}")
 
     return "".join(decoded).replace("\\n", "\n")
 
