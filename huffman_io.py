@@ -25,7 +25,7 @@ def encode_io(input_file: str, output_file: str, tree_file: str) -> None:
 
     len_padding = 8 - len(encoded) % 8  # Get the number of zeros to pad
     print(f"Length of padding: {len_padding}")
-    encoded = f"{len_padding:08b}" + "0" * len_padding + encoded  # Add padding to front of string
+    encoded = encoded + "0" * len_padding + f"{len_padding:08b}"  # Add padding to back of string
     byte_data = int(encoded, 2).to_bytes(len(encoded) // 8, byteorder='big')  # Convert to bytes
 
     with open(output_file, "wb") as file:
@@ -63,10 +63,12 @@ def decode_io(input_file: str, output_file: str, tree_file: str) -> None:
             content[i * 8 + 6] = byte >> 1 & 1
             content[i * 8 + 7] = byte >> 0 & 1
 
-    # Remove padding from the start
-    len_padding = int("".join(map(str, content[:8])), 2)  # Get length of padding
+    # Remove padding from the back
+    len_padding = 0
+    for bit in content[-8:]:
+        len_padding = (len_padding << 1) | bit
     print(f"Detected length of padding: {len_padding}")
-    content = content[8 + len_padding:]  # Remove padding byte and the padding
+    content = content[:-(8 + len_padding)]  # Remove padding byte and the padding
     print(f"Finished reading binary data from '{input_file}'. Number of binary characters: {len(content)}")
 
     tree = read_tree_from_file(tree_file)
@@ -123,10 +125,10 @@ def construct_tree(data: list[tuple[int, HuffmanBinaryTree]], curr_d: int) -> Hu
     data.pop(0)
 
     # Get the left subtree
-    curr_tree.left = construct_tree(data, curr_d + 1)
+    curr_tree.zero = construct_tree(data, curr_d + 1)
 
     # Get the right subtree
-    curr_tree.right = construct_tree(data, curr_d + 1)
+    curr_tree.one = construct_tree(data, curr_d + 1)
 
     return curr_tree
 

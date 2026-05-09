@@ -8,40 +8,40 @@ from __future__ import annotations
 class HuffmanBinaryTree:
     """
     Representation of a binary tree for Huffman encoding/decoding.
-    self.left represents 0 and self.right represents 1 for the encoding and decoding process.
-    A leaf is represented by a tree that satisfies self.left is None and self.right is None.
+    self.zero represents 0 and self.one represents 1 for the encoding and decoding process.
+    A leaf is represented by a tree that satisfies self.zero is None and self.one is None.
 
     Representation Invariants:
         - self.char is not None and self.freq is not None
-        - (self.left is None) == (self.right is None)
-        - if self.left is None and self.right is None (i.e. self is a leaf node),
+        - (self.zero is None) == (self.one is None)
+        - if self.zero is None and self.one is None (i.e. self is a leaf node),
           then len(self.char) == 1
         - if self is an internal node,
-          then self.char == self.left.char + self.right.char and self.freq == self.left.freq + self.right.freq
+          then self.char == self.zero.char + self.one.char and self.freq == self.zero.freq + self.one.freq
     """
 
     char: str
     freq: int
-    left: HuffmanBinaryTree | None
-    right: HuffmanBinaryTree | None
-    freqlist: list[HuffmanBinaryTree]
+    zero: HuffmanBinaryTree | None
+    one: HuffmanBinaryTree | None
     _string: str
 
     def __init__(self, char: str, freq: int,
-                 left: HuffmanBinaryTree = None, right: HuffmanBinaryTree = None):
+                 zero: HuffmanBinaryTree = None, one: HuffmanBinaryTree = None):
         self.char = char
         self.freq = freq
-        self.left = left
-        self.right = right
+        self.zero = zero
+        self.one = one
 
     def __str__(self) -> str:
         return self._generate_string(0)
 
     def _generate_string(self, d: int) -> str:
         """
+        Generate a string representation of this tree.
 
-        :param d:
-        :return:
+        :param d: depth of current call
+        :return: string representation
         """
         str_so_far = f"{"  " * d}--{self.char}--{self.freq}"
 
@@ -49,11 +49,11 @@ class HuffmanBinaryTree:
         str_so_far = str_so_far.replace("\n", "\\n") + "\n"
 
         # Base case: self is a leaf node
-        if self.left is None and self.right is None:
+        if self.zero is None and self.one is None:
             return str_so_far
 
         # Recursive: get the hashes for the subtrees
-        return f"{str_so_far}{self.left._generate_string(d + 1)}{self.right._generate_string(d + 1)}"
+        return f"{str_so_far}{self.zero._generate_string(d + 1)}{self.one._generate_string(d + 1)}"
 
     def combine(self, other: HuffmanBinaryTree) -> HuffmanBinaryTree:
         """
@@ -73,12 +73,6 @@ class HuffmanBinaryTree:
         encoding_dict = {}
         self._generate_encoding_dict_helper(encoding_dict, "")
 
-        # freqdict = {h.char: h.freq for h in self.freqlist}
-
-        # print(len(encoding_dict))
-        # for c in sorted(list(encoding_dict.keys()), key=lambda s: len(encoding_dict[s]) * freqdict[s]):
-        #     print(f"{ord(c)}\t{len(encoding_dict[c]) * freqdict[c]}")
-
         return encoding_dict
 
     def _generate_encoding_dict_helper(self, encoding_dict: dict[str, str], str_so_far: str) -> None:
@@ -95,8 +89,8 @@ class HuffmanBinaryTree:
 
         # Recursive: call it on the subtrees
         else:
-            self.left._generate_encoding_dict_helper(encoding_dict, str_so_far + "0")
-            self.right._generate_encoding_dict_helper(encoding_dict, str_so_far + "1")
+            self.zero._generate_encoding_dict_helper(encoding_dict, str_so_far + "0")
+            self.one._generate_encoding_dict_helper(encoding_dict, str_so_far + "1")
 
 
 # ---------- ENCODING ----------
@@ -125,7 +119,6 @@ def generate_encoding_tree(s: str) -> HuffmanBinaryTree:
     :return: encoding/decoding tree
     """
     freq_list = generate_frequency_nodes(s)
-    freqlist = freq_list.copy()
 
     while len(freq_list) > 1:
         node2 = freq_list.pop()
@@ -136,10 +129,7 @@ def generate_encoding_tree(s: str) -> HuffmanBinaryTree:
         freq_list.append(new_node)
         freq_list.sort(key=lambda node: node.freq, reverse=True)
 
-        # insert_keeping_sort(freq_list, new_node, lambda node: node.freq)
-
     # Only one node left, which is the entire tree
-    # freq_list[0].freqlist = freqlist
     return freq_list[0]
 
 
@@ -201,10 +191,10 @@ def huffman_decode(s: list[int], tree: HuffmanBinaryTree) -> str:
     curr_node = tree
     for bit in s:
         if bit: # 1
-            curr_node = curr_node.right
+            curr_node = curr_node.one
         else:  # 0
-            curr_node = curr_node.left
-        if curr_node.left is None:
+            curr_node = curr_node.zero
+        if curr_node.zero is None:
             decoded[i] = curr_node.char
             i += 1
             curr_node = tree
